@@ -6,7 +6,14 @@ const db = require('./database'); //imports the database.js file
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+const corsOptions = {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // handle preflight requests
 app.use(express.json());
 
 //AUTH
@@ -34,7 +41,7 @@ async function login(request, response) {
     }
 }
 
- //FEED 
+//FEED 
 
 async function getFeed(request, response) {
     const sqlQuery = `
