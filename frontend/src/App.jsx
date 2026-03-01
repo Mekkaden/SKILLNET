@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = 'https://skillnet-production.up.railway.app';
 
 //HELPERS
 

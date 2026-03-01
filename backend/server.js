@@ -235,7 +235,12 @@ app.put('/api/listings/:type/:id', updateListing);
 
 //START
 async function startServer() {
-    await db.initializeDatabase();
+    try {
+        await db.initializeDatabase();
+    } catch (err) {
+        console.error('ERROR: Database initialization failed:', err.message);
+        console.error('Server will still start, but DB calls will fail.');
+    }
     app.listen(PORT, function () {
         console.log('Skillnet server running on port ' + PORT);
     });

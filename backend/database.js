@@ -5,11 +5,11 @@ const pg = require('pg'); //library
 //creates the connection pool
 const Pool = pg.Pool;
 
+const isRemote = process.env.DATABASE_URL && process.env.DATABASE_URL.includes('railway');
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: isRemote ? { rejectUnauthorized: false } : false
 });
 
 async function initializeDatabase() {
