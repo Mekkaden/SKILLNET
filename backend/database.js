@@ -1,5 +1,5 @@
 //dotenv is a package to use  env file to get key-value pairs
-require('dotenv').config(); 
+require('dotenv').config();
 //pg is a package to connect to postgresql
 const pg = require('pg'); //library
 //creates the connection pool
@@ -13,9 +13,6 @@ const pool = new Pool({
 });
 
 async function initializeDatabase() {
-  const dropTables = `
-    DROP TABLE IF EXISTS services, products, listings, users CASCADE;
-  `;
 
   const createUsersTable = `
     CREATE TABLE IF NOT EXISTS users (
@@ -54,8 +51,6 @@ async function initializeDatabase() {
     -- ON CONFLICT DO NOTHING; means if the user already exists, do nothing
   `;
 
-  console.log('EXECUTING DB COMMAND: ', dropTables);
-  await pool.query(dropTables); 
 
   //Here we just need the query to execute and finish thats why we aint assigning the result to a variable
 
@@ -69,7 +64,7 @@ async function initializeDatabase() {
   await pool.query(createServicesTable);
 
   console.log('EXECUTING DB COMMAND: ', insertDummyUser);
-  await pool.query(insertDummyUser); 
+  await pool.query(insertDummyUser);
 
   console.log('Database initialized successfully.');
 }

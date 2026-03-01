@@ -4,7 +4,7 @@ const cors = require('cors'); //cors is a package to allow cross origin resource
 const db = require('./database'); //imports the database.js file
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
