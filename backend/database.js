@@ -15,9 +15,14 @@ async function initializeDatabase() {
   const createUsersTable = `
     CREATE TABLE IF NOT EXISTS users (
       user_id  SERIAL PRIMARY KEY,
+      name     VARCHAR(255),
       email    VARCHAR(255) NOT NULL UNIQUE,
       password VARCHAR(255) NOT NULL
     );
+  `;
+
+  const addNameColumnIfMissing = `
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(255);
   `;
 
   const createProductsTable = `
@@ -54,6 +59,9 @@ async function initializeDatabase() {
 
   console.log('EXECUTING DB COMMAND: ', createUsersTable);
   await pool.query(createUsersTable);
+
+  console.log('EXECUTING DB COMMAND: ', addNameColumnIfMissing);
+  await pool.query(addNameColumnIfMissing);
 
   console.log('EXECUTING DB COMMAND: ', createProductsTable);
   await pool.query(createProductsTable);
