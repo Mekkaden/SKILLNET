@@ -1,9 +1,14 @@
 require('dotenv').config();
 const express = require('express');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const db = require('./database');
+const { requireAuth } = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET;
+const SALT_ROUNDS = 10;
 
 // Manual CORS middleware — works in all environments
 app.use(function (req, res, next) {
@@ -17,7 +22,7 @@ app.use(function (req, res, next) {
 });
 app.use(express.json());
 
-//AUTH
+// ─── AUTH ────────────────────────────────────────────────────────────────────
 
 async function login(request, response) {
     const email = request.body.email;
@@ -27,22 +32,76 @@ async function login(request, response) {
         return response.status(400).json({ error: 'Email and password are required.' });
     }
 
-    const sqlQuery = 'SELECT user_id FROM users WHERE email = $1 AND password = $2;';
+    const sqlQuery = 'SELECT user_id, password FROM users WHERE email = $1;';
     console.log('EXECUTING DB COMMAND: ', sqlQuery);
 
     try {
-        const result = await db.pool.query(sqlQuery, [email, password]);
+        const result = await db.pool.query(sqlQuery, [email]);
+
         if (result.rows.length === 0) {
             return response.status(401).json({ error: 'Invalid email or password.' });
         }
-        return response.status(200).json({ userId: result.rows[0].user_id });
+
+        const user = result.rows[0];
+        const passwordMatch = await bcrypt.compare(password, user.password);
+
+        if (!passwordMatch) {
+            return response.status(401).json({ error: 'Invalid email or password.' });
+        }
+
+        const token = jwt.sign(
+            { userId: user.user_id },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        return response.status(200).json({ token: token });
     } catch (error) {
         console.error('Login error:', error);
         return response.status(500).json({ error: 'Internal server error.' });
     }
 }
 
-//FEED 
+async function register(request, response) {
+    const email = request.body.email;
+    const password = request.body.password;
+    const name = request.body.name;
+
+    if (!email || !password || !name) {
+        return response.status(400).json({ error: 'name, email, and password are required.' });
+    }
+
+    const checkQuery = 'SELECT user_id FROM users WHERE email = $1;';
+    console.log('EXECUTING DB COMMAND: ', checkQuery);
+
+    try {
+        const existing = await db.pool.query(checkQuery, [email]);
+        if (existing.rows.length > 0) {
+            return response.status(409).json({ error: 'An account with this email already exists.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
+        const insertQuery = 'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING user_id;';
+        console.log('EXECUTING DB COMMAND: ', insertQuery);
+
+        const result = await db.pool.query(insertQuery, [name, email, hashedPassword]);
+        const userId = result.rows[0].user_id;
+
+        const token = jwt.sign(
+            { userId: userId },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        return response.status(201).json({ token: token });
+    } catch (error) {
+        console.error('Register error:', error);
+        return response.status(500).json({ error: 'Internal server error.' });
+    }
+}
+
+// ─── FEED (public) ──────────────────────────────────────────────────────────
 
 async function getFeed(request, response) {
     const sqlQuery = `
@@ -64,14 +123,10 @@ async function getFeed(request, response) {
     }
 }
 
-//MY LISTINGS
+// ─── MY LISTINGS (protected) ─────────────────────────────────────────────────
 
 async function getMyListings(request, response) {
-    const userId = request.query.userId;
-
-    if (!userId) {
-        return response.status(400).json({ error: 'userId query param is required.' });
-    }
+    const userId = request.userId; // set by requireAuth middleware
 
     const sqlQuery = `
     SELECT product_id AS id, title, price, pricing_model, contact, 'PRODUCT' AS type
@@ -94,21 +149,21 @@ async function getMyListings(request, response) {
     }
 }
 
-//CREATE PRODUCT
+// ─── CREATE PRODUCT (protected) ──────────────────────────────────────────────
 
 async function createProduct(request, response) {
+    const userId = request.userId; // set by requireAuth middleware
     const title = request.body.title;
     const pricingModel = request.body.pricing_model;
     const contact = request.body.contact;
-    const userId = request.body.user_id;
 
     let price = request.body.price;
     if (pricingModel !== 'PAID') {
         price = 0;
     }
 
-    if (!title || !pricingModel || !userId) {
-        return response.status(400).json({ error: 'title, pricing_model, and user_id are required.' });
+    if (!title || !pricingModel) {
+        return response.status(400).json({ error: 'title and pricing_model are required.' });
     }
 
     const sqlQuery = 'INSERT INTO products (title, price, pricing_model, contact, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *;';
@@ -124,20 +179,21 @@ async function createProduct(request, response) {
     }
 }
 
-//CREATE SERVICE
+// ─── CREATE SERVICE (protected) ──────────────────────────────────────────────
+
 async function createService(request, response) {
+    const userId = request.userId; // set by requireAuth middleware
     const title = request.body.title;
     const pricingModel = request.body.pricing_model;
     const contact = request.body.contact;
-    const userId = request.body.user_id;
 
     let price = request.body.price;
     if (pricingModel !== 'PAID') {
         price = 0;
     }
 
-    if (!title || !pricingModel || !userId) {
-        return response.status(400).json({ error: 'title, pricing_model, and user_id are required.' });
+    if (!title || !pricingModel) {
+        return response.status(400).json({ error: 'title and pricing_model are required.' });
     }
 
     const sqlQuery = 'INSERT INTO services (title, price, pricing_model, contact, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *;';
@@ -153,15 +209,12 @@ async function createService(request, response) {
     }
 }
 
-//DELETE LISTING
+// ─── DELETE LISTING (protected) ───────────────────────────────────────────────
+
 async function deleteListing(request, response) {
+    const userId = request.userId; // set by requireAuth middleware
     const id = request.params.id;
     const type = request.params.type;
-    const userId = request.query.userId;
-
-    if (!userId) {
-        return response.status(400).json({ error: 'userId query param is required.' });
-    }
 
     let sqlQuery = '';
 
@@ -188,23 +241,24 @@ async function deleteListing(request, response) {
     }
 }
 
-//UPDATE LISTING
+// ─── UPDATE LISTING (protected) ───────────────────────────────────────────────
+
 async function updateListing(request, response) {
+    const userId = request.userId; // set by requireAuth middleware
     const id = request.params.id;
     const type = request.params.type;
 
     const title = request.body.title;
     const pricingModel = request.body.pricing_model;
     const contact = request.body.contact;
-    const userId = request.body.userId;
 
     let price = request.body.price;
     if (pricingModel !== 'PAID') {
         price = 0;
     }
 
-    if (!title || !pricingModel || !userId) {
-        return response.status(400).json({ error: 'title, pricing_model, and userId are required.' });
+    if (!title || !pricingModel) {
+        return response.status(400).json({ error: 'title and pricing_model are required.' });
     }
 
     let sqlQuery = '';
@@ -232,16 +286,19 @@ async function updateListing(request, response) {
     }
 }
 
-//ROUTES
+// ─── ROUTES ───────────────────────────────────────────────────────────────────
+
+app.post('/api/register', register);
 app.post('/api/login', login);
 app.get('/api/feed', getFeed);
-app.get('/api/my-listings', getMyListings);
-app.post('/api/products', createProduct);
-app.post('/api/services', createService);
-app.delete('/api/listings/:type/:id', deleteListing);
-app.put('/api/listings/:type/:id', updateListing);
+app.get('/api/my-listings', requireAuth, getMyListings);
+app.post('/api/products', requireAuth, createProduct);
+app.post('/api/services', requireAuth, createService);
+app.delete('/api/listings/:type/:id', requireAuth, deleteListing);
+app.put('/api/listings/:type/:id', requireAuth, updateListing);
 
-//START
+// ─── START ────────────────────────────────────────────────────────────────────
+
 async function startServer() {
     try {
         await db.initializeDatabase();

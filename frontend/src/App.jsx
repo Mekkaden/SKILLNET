@@ -1,9 +1,40 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 const API_BASE = 'https://skillnet-pdrn.onrender.com';
 
-//HELPERS
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+
+function getToken() {
+  return localStorage.getItem('token');
+}
+
+function getUserIdFromToken() {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const decoded = jwtDecode(token);
+    // Check expiry
+    if (decoded.exp && decoded.exp * 1000 < Date.now()) {
+      localStorage.removeItem('token');
+      return null;
+    }
+    return decoded.userId;
+  } catch {
+    return null;
+  }
+}
+
+function authHeaders() {
+  const token = getToken();
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ' + token,
+  };
+}
+
+// ─── UI HELPERS ───────────────────────────────────────────────────────────────
 
 function PriceBadge(props) {
   const model = props.pricingModel;
@@ -59,10 +90,10 @@ function ListingCard(props) {
   );
 }
 
-
+// ─── NAVBAR ───────────────────────────────────────────────────────────────────
 
 function Navbar(props) {
-  const loggedInUserId = props.loggedInUserId;
+  const loggedIn = props.loggedIn;
   const onLogout = props.onLogout;
 
   return (
@@ -82,7 +113,7 @@ function Navbar(props) {
             Feed
           </Link>
 
-          {loggedInUserId && ( //this is a conditional rendering, if the user is logged in then show these links
+          {loggedIn && (
             <>
               <Link to="/my-listings" className="text-gray-300 hover:text-indigo-400 transition-colors font-medium">
                 My Listings
@@ -99,13 +130,21 @@ function Navbar(props) {
             </>
           )}
 
-          {!loggedInUserId && (
-            <Link
-              to="/login"
-              className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
-            >
-              Login
-            </Link>
+          {!loggedIn && (
+            <>
+              <Link
+                to="/login"
+                className="text-gray-300 hover:text-indigo-400 transition-colors font-medium text-xs"
+              >
+                Login
+              </Link>
+              <Link
+                to="/register"
+                className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+              >
+                Register
+              </Link>
+            </>
           )}
         </div>
       </div>
@@ -113,7 +152,7 @@ function Navbar(props) {
   );
 }
 
-//LOGIN VIEW
+// ─── LOGIN VIEW ───────────────────────────────────────────────────────────────
 
 function LoginView(props) {
   const onLogin = props.onLogin;
@@ -141,8 +180,8 @@ function LoginView(props) {
       if (!response.ok) {
         setError(data.error || 'Login failed.');
       } else {
-        localStorage.setItem('userId', data.userId);
-        onLogin(data.userId);
+        localStorage.setItem('token', data.token);
+        onLogin();
         navigate('/feed');
       }
     } catch (err) {
@@ -166,7 +205,7 @@ function LoginView(props) {
             <input
               id="email"
               type="email"
-              placeholder="admin@skillnet.com"
+              placeholder="you@mits.ac.in"
               value={email}
               onChange={function (e) { setEmail(e.target.value); }}
               className="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -201,15 +240,132 @@ function LoginView(props) {
         </form>
 
         <p className="text-xs text-gray-500 mt-4 text-center">
-          Test credentials: <span className="text-gray-300">admin@skillnet.com / password123</span>
+          No account?{' '}
+          <Link to="/register" className="text-indigo-400 hover:underline">
+            Register here
+          </Link>
         </p>
       </div>
     </div>
   );
 }
 
-//FEED VIEW
+// ─── REGISTER VIEW ────────────────────────────────────────────────────────────
 
+function RegisterView(props) {
+  const onLogin = props.onLogin;
+  const navigate = useNavigate();
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(API_BASE + '/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, email: email, password: password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Registration failed.');
+      } else {
+        localStorage.setItem('token', data.token);
+        onLogin();
+        navigate('/feed');
+      }
+    } catch (err) {
+      setError('Could not connect to server.');
+    }
+
+    setLoading(false);
+  }
+
+  return (
+    <div className="min-h-[80vh] flex items-center justify-center px-4">
+      <div className="w-full max-w-sm bg-gray-800 border border-gray-700 rounded-2xl p-8">
+        <h2 className="text-2xl font-bold text-gray-100 mb-1">Create Account</h2>
+        <p className="text-gray-400 text-sm mb-6">Join Skillnet to post your gigs</p>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-400 mb-1" htmlFor="reg-name">
+              Full Name
+            </label>
+            <input
+              id="reg-name"
+              type="text"
+              placeholder="e.g. Arjun Menon"
+              value={name}
+              onChange={function (e) { setName(e.target.value); }}
+              className="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-400 mb-1" htmlFor="reg-email">
+              Email
+            </label>
+            <input
+              id="reg-email"
+              type="email"
+              placeholder="you@mits.ac.in"
+              value={email}
+              onChange={function (e) { setEmail(e.target.value); }}
+              className="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-400 mb-1" htmlFor="reg-password">
+              Password
+            </label>
+            <input
+              id="reg-password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={function (e) { setPassword(e.target.value); }}
+              className="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              required
+              minLength={6}
+            />
+          </div>
+
+          {error && <p className="text-red-400 text-xs font-medium">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 rounded-lg text-sm transition-colors disabled:opacity-60 mt-1"
+          >
+            {loading ? 'Creating account...' : 'Create Account'}
+          </button>
+        </form>
+
+        <p className="text-xs text-gray-500 mt-4 text-center">
+          Already have an account?{' '}
+          <Link to="/login" className="text-indigo-400 hover:underline">
+            Login here
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── FEED VIEW (public) ───────────────────────────────────────────────────────
 
 function FeedView() {
   const [listings, setListings] = useState([]);
@@ -228,7 +384,7 @@ function FeedView() {
 
   useEffect(function () {
     loadFeed();
-  }, []); //we put inside useeffect to avoid infinite loop,also this is just to run the app once the component mounts for the first time
+  }, []);
 
   if (loading) {
     return <p className="text-center text-gray-500 mt-20">Loading feed...</p>;
@@ -254,12 +410,9 @@ function FeedView() {
   );
 }
 
-/* ═══════════════════════════════════════
-   MY LISTINGS VIEW
-═══════════════════════════════════════ */
+// ─── MY LISTINGS VIEW (protected) ────────────────────────────────────────────
 
-function MyListingsView(props) {
-  const loggedInUserId = props.loggedInUserId;
+function MyListingsView() {
   const navigate = useNavigate();
 
   const [listings, setListings] = useState([]);
@@ -272,16 +425,23 @@ function MyListingsView(props) {
   const [editContact, setEditContact] = useState('');
 
   useEffect(function () {
-    if (!loggedInUserId) {
+    if (!getToken()) {
       navigate('/login');
       return;
     }
     loadMyListings();
-  }, [loggedInUserId]);
+  }, []);
 
   async function loadMyListings() {
     try {
-      const response = await fetch(API_BASE + '/api/my-listings?userId=' + loggedInUserId);
+      const response = await fetch(API_BASE + '/api/my-listings', {
+        headers: authHeaders(),
+      });
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        navigate('/login');
+        return;
+      }
       const data = await response.json();
       setListings(data);
     } catch (err) {
@@ -296,8 +456,11 @@ function MyListingsView(props) {
 
     try {
       const response = await fetch(
-        API_BASE + '/api/listings/' + type + '/' + id + '?userId=' + loggedInUserId,
-        { method: 'DELETE' }
+        API_BASE + '/api/listings/' + type + '/' + id,
+        {
+          method: 'DELETE',
+          headers: authHeaders(),
+        }
       );
 
       if (response.ok) {
@@ -331,13 +494,12 @@ function MyListingsView(props) {
       pricing_model: editPricingModel,
       price: editPricingModel === 'PAID' ? editPrice : 0,
       contact: editContact,
-      userId: loggedInUserId,
     };
 
     try {
       const response = await fetch(API_BASE + '/api/listings/' + type + '/' + id, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(body),
       });
 
@@ -503,12 +665,9 @@ function MyListingsView(props) {
   );
 }
 
-/* ═══════════════════════════════════════
-   CREATE LISTING VIEW
-═══════════════════════════════════════ */
+// ─── CREATE LISTING VIEW (protected) ─────────────────────────────────────────
 
-function CreateListingView(props) {
-  const loggedInUserId = props.loggedInUserId;
+function CreateListingView() {
   const navigate = useNavigate();
 
   const [listingType, setListingType] = useState('PRODUCT');
@@ -520,10 +679,10 @@ function CreateListingView(props) {
   const [error, setError] = useState('');
 
   useEffect(function () {
-    if (!loggedInUserId) {
+    if (!getToken()) {
       navigate('/login');
     }
-  }, [loggedInUserId]);
+  }, []);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -536,19 +695,23 @@ function CreateListingView(props) {
       pricing_model: pricingModel,
       price: pricingModel === 'PAID' ? price : 0,
       contact: contact,
-      user_id: loggedInUserId,
     };
 
     try {
       const response = await fetch(API_BASE + endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(body),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          navigate('/login');
+          return;
+        }
         setError(data.error || 'Something went wrong.');
       } else {
         navigate('/feed');
@@ -682,42 +845,34 @@ function CreateListingView(props) {
   );
 }
 
-
+// ─── APP ──────────────────────────────────────────────────────────────────────
 
 function App() {
-  const [loggedInUserId, setLoggedInUserId] = useState(
-    localStorage.getItem('userId')
-  );
+  const [loggedIn, setLoggedIn] = useState(function () {
+    return getUserIdFromToken() !== null;
+  });
 
-  function handleLogin(userId) {
-    setLoggedInUserId(userId);
+  function handleLogin() {
+    setLoggedIn(true);
   }
 
   function handleLogout() {
-    localStorage.removeItem('userId');
-    setLoggedInUserId(null);
+    localStorage.removeItem('token');
+    setLoggedIn(false);
   }
 
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-gray-900 text-gray-100">
-        <Navbar loggedInUserId={loggedInUserId} onLogout={handleLogout} />
+        <Navbar loggedIn={loggedIn} onLogout={handleLogout} />
 
         <Routes>
           <Route path="/" element={<FeedView />} />
           <Route path="/feed" element={<FeedView />} />
-          <Route
-            path="/login"
-            element={<LoginView onLogin={handleLogin} />}
-          />
-          <Route
-            path="/my-listings"
-            element={<MyListingsView loggedInUserId={loggedInUserId} />}
-          />
-          <Route
-            path="/post"
-            element={<CreateListingView loggedInUserId={loggedInUserId} />}
-          />
+          <Route path="/login" element={<LoginView onLogin={handleLogin} />} />
+          <Route path="/register" element={<RegisterView onLogin={handleLogin} />} />
+          <Route path="/my-listings" element={<MyListingsView />} />
+          <Route path="/post" element={<CreateListingView />} />
         </Routes>
       </div>
     </BrowserRouter>
