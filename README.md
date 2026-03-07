@@ -1,6 +1,5 @@
 # SKILLNET 🎓
 
-> **⚠️ Beta Version — Still Under Active Development**
 
 A campus marketplace built for **Muthoot Institute of Technology and Science**.  
 Students can buy/sell products and offer services to each other — all within the college community.
