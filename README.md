@@ -10,11 +10,11 @@ Students can buy/sell products and offer services to each other — all within t
 
 Skillnet is a peer-to-peer campus marketplace where students can:
 
-- 📦 **List Products** — Sell physical items like textbooks, electronics, or accessories
-- 🛠️ **Offer Services** — Offer skills like Linux setup, graphic design, tutoring, or repairs
-- 💸 **Flexible Pricing** — Set listings as **Free**, **Chai ☕** (barter), or **Paid (₹)**
-- 🔐 **User Accounts** — Login to manage, edit, and delete your own listings
-- 📋 **My Listings** — View and manage only your own posts
+-  **List Products** — Sell physical items like textbooks, electronics, or accessories
+-  **Offer Services** — Offer skills like Linux setup, graphic design, tutoring, or repairs
+-  **Flexible Pricing** — Set listings as **Free**, **Chai ☕** (barter), or **Paid (₹)**
+-  **User Accounts** — Login to manage, edit, and delete your own listings
+-  **My Listings** — View and manage only your own posts
 
 ---
 
@@ -137,26 +137,5 @@ SKILLNET/
 
 ---
 
-## Project Status
-
-| Feature | Status |
-|---|---|
-| User Login / Logout | ✅ Done |
-| Post Products & Services | ✅ Done |
-| Live Feed (UNION Query) | ✅ Done |
-| Edit Listings | ✅ Done |
-| Delete Listings | ✅ Done |
-| Real Authentication (JWT/bcrypt) | 🔄 Planned |
-| Search & Filter | 🔄 Planned |
-| Image Uploads | 🔄 Planned |
-| User Registration | 🔄 Planned |
-
----
-
-## Built for
-
-> DBMS Mini Project — Muthoot Institute of Technology and Science
-
----
 
 *Made with ☕ by [Mekkaden](https://github.com/Mekkaden)*
