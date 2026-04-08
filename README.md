@@ -2,13 +2,13 @@
 
 
 A campus marketplace built for **Muthoot Institute of Technology and Science**.  
-Students can buy/sell products and offer services to each other — all within the college community.
+Students can buy/sell products and offer services to each other  all within the college community.
 
 ---
 
 ## What is Skillnet?
 
-Skillnet is a peer-to-peer campus marketplace where students can:
+Skillnet is a peer to peer campus marketplace where students can:
 
 - 📦 **List Products** — Sell physical items like textbooks, electronics, or accessories
 - 🛠️ **Offer Services** — Offer skills like Linux setup, graphic design, tutoring, or repairs
