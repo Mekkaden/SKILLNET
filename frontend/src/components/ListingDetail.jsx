@@ -498,17 +498,17 @@ function ListingDetail() {
   var typeLabel = listingType === 'PRODUCT' ? 'Product' : 'Service';
   var typeStyle = listingType === 'PRODUCT'
     ? {
-        background: 'rgba(99,102,241,0.14)',
-        border: '1px solid rgba(99,102,241,0.28)',
-        color: '#a5b4fc',
-        backdropFilter: 'blur(8px)',
-      }
+      background: 'rgba(99,102,241,0.14)',
+      border: '1px solid rgba(99,102,241,0.28)',
+      color: '#a5b4fc',
+      backdropFilter: 'blur(8px)',
+    }
     : {
-        background: 'rgba(139,92,246,0.14)',
-        border: '1px solid rgba(139,92,246,0.28)',
-        color: '#c4b5fd',
-        backdropFilter: 'blur(8px)',
-      };
+      background: 'rgba(139,92,246,0.14)',
+      border: '1px solid rgba(139,92,246,0.28)',
+      color: '#c4b5fd',
+      backdropFilter: 'blur(8px)',
+    };
 
   var priceDisplay = listingPricingModel === 'FREE'
     ? 'Free'

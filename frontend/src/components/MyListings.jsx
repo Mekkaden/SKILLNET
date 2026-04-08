@@ -93,15 +93,15 @@ function MyListingCard(props) {
 
   var typeStyle = item.type === 'PRODUCT'
     ? {
-        background: 'rgba(99,102,241,0.14)',
-        border: '1px solid rgba(99,102,241,0.25)',
-        color: '#a5b4fc',
-      }
+      background: 'rgba(99,102,241,0.14)',
+      border: '1px solid rgba(99,102,241,0.25)',
+      color: '#a5b4fc',
+    }
     : {
-        background: 'rgba(139,92,246,0.14)',
-        border: '1px solid rgba(139,92,246,0.25)',
-        color: '#c4b5fd',
-      };
+      background: 'rgba(139,92,246,0.14)',
+      border: '1px solid rgba(139,92,246,0.25)',
+      color: '#c4b5fd',
+    };
 
   return (
     <div
@@ -162,8 +162,8 @@ function MyListingCard(props) {
             {item.pricing_model === 'FREE'
               ? 'Free'
               : item.pricing_model === 'CHAI'
-              ? 'Chai'
-              : '₹' + parseFloat(item.price).toFixed(0)}
+                ? 'Chai'
+                : '₹' + parseFloat(item.price).toFixed(0)}
           </span>
         </div>
       </div>

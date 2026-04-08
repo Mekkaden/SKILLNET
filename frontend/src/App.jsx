@@ -12,7 +12,7 @@ import MyListings from './components/MyListings.jsx';
 import AppFooter from './components/AppFooter.jsx';
 import { selectedListingAtom } from './state/listingAtoms.js';
 
-var API_BASE = import.meta.env.VITE_API_URL;
+var API_BASE = '';
 
 var queryClient = new QueryClient();
 
