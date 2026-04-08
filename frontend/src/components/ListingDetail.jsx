@@ -10,7 +10,7 @@ import AnimationWrapper from './AnimationWrapper.jsx';
 
 gsap.registerPlugin(ScrollTrigger);
 
-var API_BASE = '';
+var API_BASE = import.meta.env.VITE_API_URL;
 
 // ─── GRADIENT PLACEHOLDER (when listing has no image_url) ───────────────────
 

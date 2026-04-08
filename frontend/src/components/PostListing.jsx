@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 
-var API_BASE = '';
+var API_BASE = import.meta.env.VITE_API_URL;
 
 function getToken() {
   return localStorage.getItem('token');

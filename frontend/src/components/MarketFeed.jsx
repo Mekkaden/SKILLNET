@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import SearchBar from './SearchBar.jsx';
 
-var API_BASE = '';
+var API_BASE = import.meta.env.VITE_API_URL;
 
 /* ─── Placeholder gradient per type ─────────────────────────────────────── */
 
