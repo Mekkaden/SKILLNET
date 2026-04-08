@@ -1,0 +1,11 @@
+.circular-gallery {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.circular-gallery canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}

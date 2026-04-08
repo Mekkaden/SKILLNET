@@ -1,8 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RecoilRoot, useSetRecoilState } from 'recoil';
+import { gsap } from 'gsap';
+import ListingDetail from './components/ListingDetail.jsx';
+import ReceiptPage from './components/ReceiptPage.jsx';
+import MarketFeed from './components/MarketFeed.jsx';
+import PostListing from './components/PostListing.jsx';
+import MyListings from './components/MyListings.jsx';
+import AppFooter from './components/AppFooter.jsx';
+import { selectedListingAtom } from './state/listingAtoms.js';
 
-const API_BASE = 'https://skillnet-pdrn.onrender.com';
+var API_BASE = '';
+
+var queryClient = new QueryClient();
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -69,61 +81,168 @@ function TypeBadge(props) {
 }
 
 function ListingCard(props) {
-  const item = props.item;
+  var item = props.item;
+  var cardRef = useRef(null);
+  var setSelectedListing = useSetRecoilState(selectedListingAtom);
+
+  function handleMouseEnter() {
+    gsap.to(cardRef.current, {
+      scale: 1.03,
+      y: -4,
+      duration: 0.28,
+      ease: 'power2.out',
+      boxShadow: '0 12px 40px rgba(99,102,241,0.25)',
+    });
+  }
+
+  function handleMouseLeave() {
+    gsap.to(cardRef.current, {
+      scale: 1,
+      y: 0,
+      duration: 0.28,
+      ease: 'power2.out',
+      boxShadow: '0 0px 0px rgba(0,0,0,0)',
+    });
+  }
+
+  function handleClick() {
+    setSelectedListing(item);
+  }
+
+  var linkPath = '/listing/' + item.type + '/' + item.id;
+
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 flex flex-col gap-2 hover:border-indigo-500 transition-colors">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-gray-100 text-base truncate pr-2">{item.title}</h3>
-        <TypeBadge type={item.type} />
-      </div>
-      <div className="flex items-center justify-between">
-        <PriceBadge pricingModel={item.pricing_model} price={item.price} />
-        <span className="text-xs text-gray-500">#{item.id}</span>
-      </div>
-      {item.contact && (
-        <div className="flex items-center gap-2 text-xs text-gray-400 bg-gray-700 rounded-lg px-3 py-1.5">
-          <span>📞</span>
-          <span>{item.contact}</span>
+    <Link
+      to={linkPath}
+      onClick={handleClick}
+      style={{ textDecoration: 'none', display: 'block' }}
+    >
+      <div
+        ref={cardRef}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className="cursor-pointer rounded-2xl p-5 flex flex-col gap-3"
+        style={{
+          background: 'linear-gradient(160deg, #0d1117 0%, #161b22 100%)',
+          border: '1px solid rgba(255,255,255,0.07)',
+          transition: 'border-color 0.2s',
+        }}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-bold text-gray-100 text-sm leading-snug flex-1">{item.title}</h3>
+          <TypeBadge type={item.type} />
         </div>
-      )}
-    </div>
+        <div className="flex items-center justify-between">
+          <PriceBadge pricingModel={item.pricing_model} price={item.price} />
+          <span className="text-xs" style={{ color: '#1e3a50', fontFamily: 'monospace' }}>#{item.id}</span>
+        </div>
+        {item.contact && (
+          <div
+            className="flex items-center gap-2 text-xs rounded-lg px-3 py-2"
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', color: '#64748b' }}
+          >
+            <span>{item.contact.indexOf('@') !== -1 ? '📧' : '📞'}</span>
+            <span className="truncate">{item.contact}</span>
+          </div>
+        )}
+        <div
+          className="text-xs font-semibold flex items-center gap-1 mt-1"
+          style={{ color: '#6366f1' }}
+        >
+          View Deal <span style={{ fontSize: '10px' }}>→</span>
+        </div>
+      </div>
+    </Link>
   );
 }
 
-// ─── NAVBAR ───────────────────────────────────────────────────────────────────
+// ─── NAVBAR (V3 — SkillNet Glass) ──────────────────────────────────────────
 
 function Navbar(props) {
-  const loggedIn = props.loggedIn;
-  const onLogout = props.onLogout;
+  var loggedIn = props.loggedIn;
+  var onLogout = props.onLogout;
 
   return (
-    <nav className="bg-gray-950 border-b border-gray-800 sticky top-0 z-50">
-      <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-        <div>
-          <div className="text-xl font-extrabold text-indigo-400 tracking-tight leading-tight">
-            SKILLNET
+    <nav
+      className="sticky top-0 z-50"
+      style={{
+        background: 'rgba(5,5,5,0.8)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        boxShadow: '0 1px 0 rgba(99,102,241,0.08)',
+      }}
+    >
+      <div className="max-w-6xl mx-auto px-5 py-3 flex items-center justify-between">
+        <Link to="/feed" style={{ textDecoration: 'none' }}>
+          <div className="flex items-center gap-3">
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-black text-sm"
+              style={{
+                background: 'linear-gradient(135deg, #6366f1 0%, #3b82f6 100%)',
+                boxShadow: '0 0 16px rgba(99,102,241,0.35)',
+              }}
+            >
+              S
+            </div>
+            <div>
+              <div
+                className="font-black text-sm tracking-tight leading-tight"
+                style={{
+                  background: 'linear-gradient(90deg, #a5b4fc, #93c5fd)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                SkillNet
+              </div>
+              <div className="text-xs leading-tight" style={{ color: 'rgba(100,116,139,0.6)' }}>
+                Campus Market
+              </div>
+            </div>
           </div>
-          <div className="text-xs text-gray-500 leading-tight">
-            Muthoot Institute of Technology and Science
-          </div>
-        </div>
+        </Link>
 
-        <div className="flex items-center gap-4 text-sm">
-          <Link to="/feed" className="text-gray-300 hover:text-indigo-400 transition-colors font-medium">
-            Feed
+        <div className="flex items-center gap-5 text-sm">
+          <Link
+            to="/feed"
+            className="font-medium transition-colors"
+            style={{ color: 'rgba(148,163,184,0.7)' }}
+            onMouseEnter={function (e) { e.currentTarget.style.color = '#a5b4fc'; }}
+            onMouseLeave={function (e) { e.currentTarget.style.color = 'rgba(148,163,184,0.7)'; }}
+          >
+            Market
           </Link>
 
           {loggedIn && (
             <>
-              <Link to="/my-listings" className="text-gray-300 hover:text-indigo-400 transition-colors font-medium">
+              <Link
+                to="/my-listings"
+                className="font-medium transition-colors"
+                style={{ color: 'rgba(148,163,184,0.7)' }}
+                onMouseEnter={function (e) { e.currentTarget.style.color = '#a5b4fc'; }}
+                onMouseLeave={function (e) { e.currentTarget.style.color = 'rgba(148,163,184,0.7)'; }}
+              >
                 My Listings
               </Link>
-              <Link to="/post" className="text-gray-300 hover:text-indigo-400 transition-colors font-medium">
+              <Link
+                to="/post"
+                className="font-medium transition-colors"
+                style={{ color: 'rgba(148,163,184,0.7)' }}
+                onMouseEnter={function (e) { e.currentTarget.style.color = '#a5b4fc'; }}
+                onMouseLeave={function (e) { e.currentTarget.style.color = 'rgba(148,163,184,0.7)'; }}
+              >
                 Post Gig
               </Link>
               <button
                 onClick={onLogout}
-                className="bg-red-900 hover:bg-red-800 text-red-200 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                style={{
+                  background: 'rgba(239,68,68,0.1)',
+                  border: '1px solid rgba(239,68,68,0.2)',
+                  color: 'rgba(252,165,165,0.8)',
+                }}
               >
                 Logout
               </button>
@@ -134,15 +253,23 @@ function Navbar(props) {
             <>
               <Link
                 to="/login"
-                className="text-gray-300 hover:text-indigo-400 transition-colors font-medium text-xs"
+                className="text-xs font-medium transition-colors"
+                style={{ color: 'rgba(148,163,184,0.7)' }}
+                onMouseEnter={function (e) { e.currentTarget.style.color = '#a5b4fc'; }}
+                onMouseLeave={function (e) { e.currentTarget.style.color = 'rgba(148,163,184,0.7)'; }}
               >
                 Login
               </Link>
               <Link
                 to="/register"
-                className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                className="text-xs font-semibold px-4 py-1.5 rounded-lg transition-all"
+                style={{
+                  background: 'linear-gradient(135deg, #6366f1 0%, #3b82f6 100%)',
+                  color: '#fff',
+                  boxShadow: '0 0 12px rgba(99,102,241,0.3)',
+                }}
               >
-                Register
+                Join Free
               </Link>
             </>
           )}
@@ -368,13 +495,15 @@ function RegisterView(props) {
 // ─── FEED VIEW (public) ───────────────────────────────────────────────────────
 
 function FeedView() {
-  const [listings, setListings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  var [listings, setListings] = useState([]);
+  var [loading, setLoading] = useState(true);
+  var gridRef = useRef(null);
+  var headerRef = useRef(null);
 
   async function loadFeed() {
     try {
-      const response = await fetch(API_BASE + '/api/feed');
-      const data = await response.json();
+      var response = await fetch(API_BASE + '/api/feed');
+      var data = await response.json();
       setListings(data);
     } catch (err) {
       console.error('Failed to load feed:', err);
@@ -386,25 +515,100 @@ function FeedView() {
     loadFeed();
   }, []);
 
+  // GSAP staggered entrance animation once cards render
+  useEffect(function () {
+    if (loading || listings.length === 0) return;
+
+    // Animate hero header
+    gsap.fromTo(
+      headerRef.current,
+      { y: -20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }
+    );
+
+    // Stagger animate each card child
+    var cards = gridRef.current ? gridRef.current.children : [];
+    gsap.fromTo(
+      cards,
+      { y: 50, opacity: 0, scale: 0.96 },
+      {
+        y: 0,
+        opacity: 1,
+        scale: 1,
+        duration: 0.55,
+        ease: 'power3.out',
+        stagger: 0.07,
+        delay: 0.1,
+      }
+    );
+  }, [loading, listings]);
+
   if (loading) {
-    return <p className="text-center text-gray-500 mt-20">Loading feed...</p>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div
+            className="w-12 h-12 rounded-full animate-spin"
+            style={{ border: '3px solid rgba(99,102,241,0.15)', borderTopColor: '#6366f1' }}
+          />
+          <p className="text-sm" style={{ color: '#475569' }}>Loading the Shark Tank...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-100">Live Feed</h1>
-        <span className="text-sm text-gray-500">{listings.length} listing{listings.length !== 1 ? 's' : ''}</span>
-      </div>
+    <div
+      className="min-h-screen"
+      style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.06) 0%, transparent 60%)' }}
+    >
+      <div className="max-w-5xl mx-auto px-4 py-10">
 
-      {listings.length === 0 && (
-        <p className="text-center text-gray-600 mt-20">No listings yet. Be the first!</p>
-      )}
+        {/* Feed Header */}
+        <div ref={headerRef} className="mb-10">
+          <div className="flex items-end justify-between">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#6366f1' }}>
+                Live · Campus Feed
+              </div>
+              <h1
+                className="font-extrabold text-3xl md:text-4xl tracking-tight text-white"
+                style={{ lineHeight: 1.1 }}
+              >
+                The Shark Tank 🦈
+              </h1>
+              <p className="text-sm mt-2" style={{ color: '#475569' }}>
+                Peer-to-peer deals from verified MITS students
+              </p>
+            </div>
+            <span
+              className="text-xs font-mono px-3 py-1.5 rounded-full"
+              style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', color: '#818cf8' }}
+            >
+              {listings.length} {listings.length !== 1 ? 'deals' : 'deal'}
+            </span>
+          </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {listings.map(function (item) {
-          return <ListingCard key={item.type + '-' + item.id} item={item} />;
-        })}
+          {/* Divider */}
+          <div
+            className="mt-6 h-px"
+            style={{ background: 'linear-gradient(90deg, rgba(99,102,241,0.4) 0%, transparent 100%)' }}
+          />
+        </div>
+
+        {listings.length === 0 && (
+          <div className="text-center py-24">
+            <div className="text-5xl mb-4">🦈</div>
+            <p className="text-white font-bold mb-1">The tank is empty</p>
+            <p className="text-sm" style={{ color: '#334155' }}>Be the first to post a deal!</p>
+          </div>
+        )}
+
+        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {listings.map(function (item) {
+            return <ListingCard key={item.type + '-' + item.id} item={item} />;
+          })}
+        </div>
       </div>
     </div>
   );
@@ -862,20 +1066,27 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-gray-900 text-gray-100">
-        <Navbar loggedIn={loggedIn} onLogout={handleLogout} />
+    <RecoilRoot>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <div className="min-h-screen text-gray-100" style={{ background: '#050505' }}>
+            <Navbar loggedIn={loggedIn} onLogout={handleLogout} />
 
-        <Routes>
-          <Route path="/" element={<FeedView />} />
-          <Route path="/feed" element={<FeedView />} />
-          <Route path="/login" element={<LoginView onLogin={handleLogin} />} />
-          <Route path="/register" element={<RegisterView onLogin={handleLogin} />} />
-          <Route path="/my-listings" element={<MyListingsView />} />
-          <Route path="/post" element={<CreateListingView />} />
-        </Routes>
-      </div>
-    </BrowserRouter>
+            <Routes>
+              <Route path="/" element={<MarketFeed />} />
+              <Route path="/feed" element={<MarketFeed />} />
+              <Route path="/login" element={<LoginView onLogin={handleLogin} />} />
+              <Route path="/register" element={<RegisterView onLogin={handleLogin} />} />
+              <Route path="/my-listings" element={<MyListings />} />
+              <Route path="/post" element={<PostListing />} />
+              <Route path="/listing/:type/:id" element={<ListingDetail />} />
+              <Route path="/receipt" element={<ReceiptPage />} />
+            </Routes>
+            <AppFooter />
+          </div>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </RecoilRoot>
   );
 }
 

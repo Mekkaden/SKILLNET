@@ -105,10 +105,10 @@ async function register(request, response) {
 
 async function getFeed(request, response) {
     const sqlQuery = `
-    SELECT product_id AS id, title, price, pricing_model, contact, 'PRODUCT' AS type
+    SELECT product_id AS id, title, description, price, pricing_model, contact, image_url, 'PRODUCT' AS type
     FROM products
     UNION
-    SELECT service_id AS id, title, price, pricing_model, contact, 'SERVICE' AS type
+    SELECT service_id AS id, title, description, price, pricing_model, contact, image_url, 'SERVICE' AS type
     FROM services
     ORDER BY id DESC;
   `;
@@ -126,14 +126,14 @@ async function getFeed(request, response) {
 // ─── MY LISTINGS (protected) ─────────────────────────────────────────────────
 
 async function getMyListings(request, response) {
-    const userId = request.userId; // set by requireAuth middleware
+    const userId = request.userId;
 
     const sqlQuery = `
-    SELECT product_id AS id, title, price, pricing_model, contact, 'PRODUCT' AS type
+    SELECT product_id AS id, title, description, price, pricing_model, contact, image_url, 'PRODUCT' AS type
     FROM products
     WHERE user_id = $1
     UNION
-    SELECT service_id AS id, title, price, pricing_model, contact, 'SERVICE' AS type
+    SELECT service_id AS id, title, description, price, pricing_model, contact, image_url, 'SERVICE' AS type
     FROM services
     WHERE user_id = $1
     ORDER BY id DESC;
@@ -152,10 +152,12 @@ async function getMyListings(request, response) {
 // ─── CREATE PRODUCT (protected) ──────────────────────────────────────────────
 
 async function createProduct(request, response) {
-    const userId = request.userId; // set by requireAuth middleware
+    const userId = request.userId;
     const title = request.body.title;
     const pricingModel = request.body.pricing_model;
     const contact = request.body.contact;
+    const description = request.body.description || null;
+    const imageUrl = request.body.image_url || null;
 
     let price = request.body.price;
     if (pricingModel !== 'PAID') {
@@ -166,12 +168,11 @@ async function createProduct(request, response) {
         return response.status(400).json({ error: 'title and pricing_model are required.' });
     }
 
-    const sqlQuery = 'INSERT INTO products (title, price, pricing_model, contact, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *;';
+    const sqlQuery = 'INSERT INTO products (title, description, price, pricing_model, contact, image_url, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;';
     console.log('EXECUTING DB COMMAND: ', sqlQuery);
-    console.log('With values: ', [title, price, pricingModel, contact, userId]);
 
     try {
-        const result = await db.pool.query(sqlQuery, [title, price, pricingModel, contact, userId]);
+        const result = await db.pool.query(sqlQuery, [title, description, price, pricingModel, contact, imageUrl, userId]);
         return response.status(201).json(result.rows[0]);
     } catch (error) {
         console.error('Create product error:', error);
@@ -182,10 +183,12 @@ async function createProduct(request, response) {
 // ─── CREATE SERVICE (protected) ──────────────────────────────────────────────
 
 async function createService(request, response) {
-    const userId = request.userId; // set by requireAuth middleware
+    const userId = request.userId;
     const title = request.body.title;
     const pricingModel = request.body.pricing_model;
     const contact = request.body.contact;
+    const description = request.body.description || null;
+    const imageUrl = request.body.image_url || null;
 
     let price = request.body.price;
     if (pricingModel !== 'PAID') {
@@ -196,12 +199,11 @@ async function createService(request, response) {
         return response.status(400).json({ error: 'title and pricing_model are required.' });
     }
 
-    const sqlQuery = 'INSERT INTO services (title, price, pricing_model, contact, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *;';
+    const sqlQuery = 'INSERT INTO services (title, description, price, pricing_model, contact, image_url, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;';
     console.log('EXECUTING DB COMMAND: ', sqlQuery);
-    console.log('With values: ', [title, price, pricingModel, contact, userId]);
 
     try {
-        const result = await db.pool.query(sqlQuery, [title, price, pricingModel, contact, userId]);
+        const result = await db.pool.query(sqlQuery, [title, description, price, pricingModel, contact, imageUrl, userId]);
         return response.status(201).json(result.rows[0]);
     } catch (error) {
         console.error('Create service error:', error);
@@ -306,9 +308,21 @@ async function startServer() {
         console.error('ERROR: Database initialization failed:', err.message);
         console.error('Server will still start, but DB calls will fail.');
     }
-    app.listen(PORT, function () {
+    const server = app.listen(PORT, function () {
         console.log('Skillnet server running on port ' + PORT);
     });
+    server.on('error', function (err) {
+        if (err.code === 'EADDRINUSE') {
+            console.error('ERROR: Port ' + PORT + ' is already in use. Kill the old process and restart.');
+        } else {
+            console.error('Server error:', err);
+        }
+        process.exit(1);
+    });
 }
+
+process.on('uncaughtException', function (err) {
+    console.error('Uncaught exception (server kept alive):', err);
+});
 
 startServer();
