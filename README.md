@@ -1,6 +1,5 @@
 # SKILLNET 🎓
 
-> **⚠️ Beta Version — Still Under Active Development**
 
 A campus marketplace built for **Muthoot Institute of Technology and Science**.  
 Students can buy/sell products and offer services to each other — all within the college community.
@@ -27,9 +26,7 @@ Skillnet is a peer-to-peer campus marketplace where students can:
 | Styling | Tailwind CSS v4 |
 | Routing | React Router v6 |
 | Backend | Node.js + Express |
-| Database | PostgreSQL (hosted on Railway) |
-| DB Driver | `pg` (node-postgres) — No ORM |
-| Auth | Fake auth via `localStorage` |
+| Database | PostgreSQL |
 
 ---
 
@@ -74,52 +71,6 @@ services
 
 ---
 
-## Installation & Setup
-
-### Prerequisites
-- Node.js v18+
-- A PostgreSQL database (Railway recommended)
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/Mekkaden/SKILLNET.git
-cd SKILLNET
-```
-
-### 2. Setup the Backend
-```bash
-cd backend
-npm install
-```
-
-Create a `.env` file inside the `backend/` folder:
-```
-DATABASE_URL=your_postgresql_connection_string_here
-```
-
-Start the backend server:
-```bash
-npm start
-```
-
-The server will auto-create all tables and seed a test user on first run.
-
-### 3. Setup the Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open **http://localhost:5173** in your browser.
-
-### 4. Test Login Credentials
-```
-Email:    admin@skillnet.com
-Password: password123
-```
-
----
 
 ## Project Structure
 
@@ -136,28 +87,4 @@ SKILLNET/
         └── index.css # Tailwind import
 ```
 
----
 
-## Project Status
-
-| Feature | Status |
-|---|---|
-| User Login / Logout | ✅ Done |
-| Post Products & Services | ✅ Done |
-| Live Feed (UNION Query) | ✅ Done |
-| Edit Listings | ✅ Done |
-| Delete Listings | ✅ Done |
-| Real Authentication (JWT/bcrypt) | 🔄 Planned |
-| Search & Filter | 🔄 Planned |
-| Image Uploads | 🔄 Planned |
-| User Registration | 🔄 Planned |
-
----
-
-## Built for
-
-> DBMS Mini Project — Muthoot Institute of Technology and Science
-
----
-
-*Made with ☕ by [Mekkaden](https://github.com/Mekkaden)*
