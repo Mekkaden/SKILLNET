@@ -543,7 +543,7 @@ function MyListings() {
               className="text-xs font-bold uppercase tracking-widest mb-2"
               style={{ color: 'rgba(99,102,241,0.8)', letterSpacing: '0.2em' }}
             >
-              SkillNet · My Account
+              SkillSphere · My Account
             </div>
             <h1
               className="font-black text-white"

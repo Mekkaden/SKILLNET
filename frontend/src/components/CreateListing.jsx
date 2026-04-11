@@ -166,7 +166,7 @@ function CreateListing() {
             className="text-xs font-bold uppercase tracking-widest mb-2"
             style={{ color: '#dfff00', letterSpacing: '0.18em' }}
           >
-            SkillNet · Post
+            SkillSphere · Post
           </div>
           <h1
             className="font-black text-white leading-none"

@@ -156,7 +156,7 @@ function ListingCard(props) {
   );
 }
 
-// ─── NAVBAR (V3 — SkillNet Glass) ──────────────────────────────────────────
+// ─── NAVBAR (V3 — SkillSphere Glass) ──────────────────────────────────────────
 
 function Navbar(props) {
   var loggedIn = props.loggedIn;
@@ -195,7 +195,7 @@ function Navbar(props) {
                   letterSpacing: '-0.02em',
                 }}
               >
-                SkillNet
+                SkillSphere
               </div>
               <div className="text-xs leading-tight" style={{ color: 'rgba(100,116,139,0.6)' }}>
                 Campus Market
@@ -421,7 +421,7 @@ function RegisterView(props) {
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-gray-800 border border-gray-700 rounded-2xl p-8">
         <h2 className="text-2xl font-bold text-gray-100 mb-1">Create Account</h2>
-        <p className="text-gray-400 text-sm mb-6">Join Skillnet to post your gigs</p>
+        <p className="text-gray-400 text-sm mb-6">Join SkillSphere to post your gigs</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>

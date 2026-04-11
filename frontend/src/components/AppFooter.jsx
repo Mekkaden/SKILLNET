@@ -1,6 +1,6 @@
 /**
  * AppFooter — enterprise multi-column dark footer.
- * Inspired by OLX structure but in the SkillNet Blue Glass design spec.
+ * Inspired by OLX structure but in the SkillSphere Blue Glass design spec.
  *
  * RSM JS Style: no arrow functions, no destructuring.
  */
@@ -79,7 +79,7 @@ function AppFooter() {
                   letterSpacing: '-0.02em',
                 }}
               >
-                SkillNet
+                SkillSphere
               </div>
             </div>
             <p
@@ -138,8 +138,8 @@ function AppFooter() {
             <FooterLink>Sports Complex</FooterLink>
           </FooterColumn>
 
-          {/* SkillNet */}
-          <FooterColumn title="SkillNet">
+          {/* SkillSphere */}
+          <FooterColumn title="SkillSphere">
             <FooterLink>About Us</FooterLink>
             <FooterLink>How It Works</FooterLink>
             <FooterLink>Verified Sellers</FooterLink>

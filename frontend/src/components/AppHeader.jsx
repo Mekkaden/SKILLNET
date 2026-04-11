@@ -54,7 +54,7 @@ function AppHeader(props) {
                   letterSpacing: '-0.02em',
                 }}
               >
-                SkillNet
+                SkillSphere
               </div>
               <div
                 className="text-xs leading-tight font-medium"

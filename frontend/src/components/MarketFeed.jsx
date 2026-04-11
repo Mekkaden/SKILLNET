@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import SearchBar from './SearchBar.jsx';
 
-var API_BASE = import.meta.env.VITE_API_URL;
+  var API_BASE = import.meta.env.VITE_API_URL;
 
 /* ─── Placeholder gradient per type ─────────────────────────────────────── */
 
@@ -25,7 +25,7 @@ function priceBadge(item) {
 /* ─── FEED CARD ──────────────────────────────────────────────────────────── */
 
 /**
- * FeedCard — glassmorphic SkillNet listing card for vertical grid.
+ * FeedCard — glassmorphic SkillSphere listing card for vertical grid.
  * Wraps in a React Router Link. Hover glow + GSAP lift.
  * RSM JS Style.
  */
@@ -167,7 +167,7 @@ function FeedCard(props) {
 /* ─── MARKET FEED ─────────────────────────────────────────────────────────── */
 
 /**
- * MarketFeed — SkillNet V5 vertical grid feed.
+ * MarketFeed — SkillSphere V5 vertical grid feed.
  * Fetches real listings, vertical scroll, cards append below.
  * SearchBar at top. GSAP stagger entry on load.
  * RSM JS Style: no arrow functions, no destructuring.
@@ -305,7 +305,7 @@ function MarketFeed() {
                     WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  SkillNet
+                  SkillSphere
                 </span>
                 {' '}Market
               </h1>
@@ -335,7 +335,7 @@ function MarketFeed() {
               {searchQuery ? 'No results for "' + searchQuery + '"' : 'No listings yet'}
             </p>
             <p className="text-sm" style={{ color: 'rgba(148,163,184,0.45)' }}>
-              {searchQuery ? 'Try a broader search.' : 'Post the first deal on SkillNet!'}
+              {searchQuery ? 'Try a broader search.' : 'Post the first deal on SkillSphere!'}
             </p>
           </div>
         )}

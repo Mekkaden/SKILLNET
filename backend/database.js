@@ -69,7 +69,7 @@ async function initializeDatabase() {
 
   const insertDummyUser = `
     INSERT INTO users (email, password)
-    VALUES ('admin@skillnet.com', 'password123')
+    VALUES ('admin@skillsphere.com', 'password123')
     ON CONFLICT DO NOTHING;
   `;
 

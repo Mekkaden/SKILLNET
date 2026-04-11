@@ -144,7 +144,7 @@ function ReceiptPage() {
                 {/* ── Footer ───────────────────────────────────────── */}
                 <div className="px-6 pb-5 text-center">
                     <div className="text-xs" style={{ color: '#1e293b' }}>
-                        SkillNet · Muthoot Institute of Technology and Science
+                        SkillSphere · Muthoot Institute of Technology and Science
                     </div>
                 </div>
             </div>

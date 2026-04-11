@@ -190,7 +190,7 @@ function CheckoutModal(props) {
                             S
                         </div>
                         <div>
-                            <div className="text-white text-sm font-extrabold leading-tight">SkillNet</div>
+                            <div className="text-white text-sm font-extrabold leading-tight">SkillSphere</div>
                             <div className="text-xs" style={{ color: '#475569' }}>Secure Campus Checkout</div>
                         </div>
                     </div>
@@ -485,7 +485,7 @@ function CheckoutModal(props) {
                 {/* ── Footer ────────────────────────────────────────────── */}
                 <div className="px-5 pb-4 text-center">
                     <span className="text-xs" style={{ color: '#1e293b' }}>
-                        Powered by SkillNet · MITS Campus
+                        Powered by SkillSphere · MITS Campus
                     </span>
                 </div>
             </div>

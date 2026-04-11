@@ -6,7 +6,7 @@ const db = require('./database');
 const { requireAuth } = require('./middleware/auth');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3003;
 const JWT_SECRET = process.env.JWT_SECRET;
 const SALT_ROUNDS = 10;
 
@@ -309,7 +309,7 @@ async function startServer() {
         console.error('Server will still start, but DB calls will fail.');
     }
     const server = app.listen(PORT, function () {
-        console.log('Skillnet server running on port ' + PORT);
+        console.log('SkillSphere server running on port ' + PORT);
     });
     server.on('error', function (err) {
         if (err.code === 'EADDRINUSE') {
